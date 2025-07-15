@@ -21,12 +21,13 @@
 ├── rfmid_dataset.py        # RFMiD 資料集定義
 ├── focal_loss.py           # Focal Loss 實作
 ├── train_cnn.py            # 主訓練程式
-├── sweep.yaml              # wandb sweep 設定 (optional)
 ├── README.md
 └── Retinal-disease-classification/
     ├── labels.csv          # 影像名稱與疾病標籤
     └── images/             # 影像檔案
 ```
+
+---
 
 ---
 
@@ -37,7 +38,7 @@
 - 分類數：28 種視網膜疾病
 - 資料格式：`.csv` 檔中包含圖片名稱與疾病類別對應
 
----
+
 
 ## 🧠 支援模型架構
 
@@ -57,7 +58,7 @@ model = get_model("resnet18")  # 可選：vgg16、resnet18、resnet50
 
 ## 🛠 使用方法
 
-### 1️⃣ 安裝套件
+### 1️⃣ 安裝套件(建議使用conda進行套件版本管理)
 
 ```bash
 pip install torch torchvision matplotlib pandas scikit-learn wandb
@@ -73,13 +74,35 @@ wandb login
 
 ### 2️⃣ 準備資料集
 
-從 Kaggle 下載並放置在：
+# 📁 資料夾結構要求
+
+下載資料後，請將Training set內容放在如下路徑下：
 
 ```
 ./Retinal-disease-classification/
-├── labels.csv
-└── images/
+├── labels.csv        # 標註檔：影像名稱與疾病類別(RFMiD_Training_Labels.csv)
+└── images/           # 所有眼底影像
 ```
+
+請確認資料夾名稱與位置正確，否則程式將無法正確讀取！
+
+### 🧾 如何讀取資料集
+
+你可以直接使用我們提供的 `rfmid_dataset.py` 來讀取資料：
+
+```python
+from rfmid_dataset import RFMiDDataset
+
+dataset = RFMiDDataset(
+    csv_file='Retinal-disease-classification/labels.csv',
+    img_dir='Retinal-disease-classification/images/',
+    transform=your_transform
+)
+```
+
+如有需要，也可以自行撰寫 Dataset class，只要能正確回傳 `(image, label)` 即可。
+
+---
 
 ---
 
@@ -93,12 +116,45 @@ python train_cnn.py
 
 ---
 
-### 4️⃣ 使用 focal loss（optional）
+---
+
+## 🎯 如何使用 Focal Loss（處理類別不平衡）
+
+RFMiD 資料集中可能存在不同疾病類別樣本數差異極大的情況。為了解決這種 class imbalance 問題，我們可以使用 Focal Loss 來加強模型對難分類樣本的學習。
+
+### 🔧 使用步驟如下：
+
+1. **引入 focal_loss.py 中的 FocalLoss 類別**
 
 ```python
 from focal_loss import FocalLoss
-criterion = FocalLoss(alpha=1, gamma=2)
 ```
+
+2. **初始化 loss function（你可以自行調整 alpha / gamma）**
+
+```python
+criterion = FocalLoss(alpha=1.0, gamma=2.0)
+```
+
+3. **在訓練時直接使用該損失函數**
+
+```python
+loss = criterion(predictions, labels)
+```
+
+> 註：`predictions` 為模型輸出的 logits，`labels` 為 ground truth 的 class index
+
+### 📌 參數說明
+
+| 參數      | 功能說明                              |
+|-----------|---------------------------------------|
+| `alpha`   | 控制正負樣本的平衡，通常設為 1.0 即可 |
+| `gamma`   | 抑制容易分類樣本的權重，常設為 2.0    |
+| `reduction` | 預設為 'mean'，也可改為 'sum' 或 'none' |
+
+---
+
+你可以將 `focal_loss.py` 放在與 `train_cnn.py` 同層的目錄中，並直接引用使用。
 
 ---
 
@@ -111,23 +167,57 @@ criterion = FocalLoss(alpha=1, gamma=2)
 
 ---
 
-## 🧪 延伸任務建議
+## 📌 作業繳交規範
 
-- 使用 data augmentation 提升泛化能力
-- 使用 early stopping 與 scheduler 自動調整學習率
-- 利用 `confusion matrix` 進行分類誤差分析
-- 使用 wandb sweep 調整 learning rate / batch size 等超參數
+### ✅ 必須完成的項目
+
+1. 使用三種模型（VGG16、ResNet18、ResNet50）訓練 RFMiD 資料集，並記錄 loss 與 accuracy 曲線。
+2. 使用 Focal Loss 重新訓練 ResNet18，觀察與原始 CrossEntropyLoss 的差異。
+3. 至少嘗試兩種超參數設定（例如不同的 learning rate 或 batch size），請在訓練主程式碼中手動修改並記錄結果。
+4. 全程使用 wandb 記錄訓練過程。
+5. 提交一份簡單報告總結觀察（含圖表與文字說明）。
+
+### 📂 繳交內容
+
+請提交以下檔案：
+
+- `train_cnn.py`：主訓練程式碼
+- `rfmid_dataset.py`：資料集定義
+- `focal_loss.py`：Focal Loss 實作
+- `result_report.pdf`：訓練結果報告（含 wandb 圖表截圖與簡要說明）
+- `wandb_log_link.txt`：你的 wandb 專案公開連結
+
 
 ---
 
-## 🙌 貢獻者
+## ☁️ GitHub 繳交方式
 
-- 👨‍🎓 訓練設計：你
-- 📘 教學與程式撰寫：你
-- 🎓 學生實作與報告：學生姓名
+請每位同學將自己的作業資料夾上傳至以下 GitHub Repo 中的 `main` 目錄下：
+
+📍 Repo 位置：  
+[https://github.com/ccuvislab/Summer-Training-Week2](https://github.com/ccuvislab/Summer-Training-Week2)
+
+### 🗂️ 每位同學請依以下命名規則建立子資料夾並上傳：
+
+```
+Summer-Training-Week2/
+└── main/
+    ├── 613410112/                  ← 你的資料夾（請用學號命名）
+    │   ├── train_cnn.py
+    │   ├── rfmid_dataset.py
+    │   ├── focal_loss.py
+    │   ├── result_report.pdf
+    │   ├── wandb_log_link.txt
+    │   
+    └── ...
+```
+
+### ✅ 注意事項
+
+- 請勿修改他人的資料夾。
+- 請勿直接上傳 `.pt` 或大型模型檔案。
+- 確保`report.pdf` 內容清楚易讀。
+- 建議使用 GitHub Desktop 或 `git` 指令完成上傳。
 
 ---
 
-## 📜 License
-
-本專案僅供教學與學術使用，資料與模型版權屬原作者所有。
