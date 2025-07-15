@@ -1,4 +1,4 @@
-
+# Summer-Training-Week2
 # 🧠 RFMiD CNN Classification — Retina Disease Detection with VGG & ResNet
 
 本專案為暑期訓練 Week 2 的作業實作，使用 CNN 模型（VGG16、ResNet18、ResNet50）完成 RFMiD 眼底疾病資料集分類任務，並透過 loss 曲線與訓練準確率分析不同模型表現。使用 wandb 進行訓練監控，並導入 focal loss 解決類別不平衡問題。
